@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".AddEditNewNoteActivity">
+
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="10dp"
+            android:background="@drawable/gradient_background">
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="vertical">-->
+
+            <EditText
+                android:id="@+id/add_title_field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Title"
+                android:inputType="text"
+                android:padding="8dp"
+                android:layout_alignParentStart="true"
+                />
+            <View
+                android:id="@+id/lineno1"
+                android:layout_below="@id/add_title_field"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@android:color/darker_gray"
+                android:layout_marginBottom="8dp"/>
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@id/lineno1"
+                android:padding="16dp"
+                android:id="@+id/content_wrap"
+
+                android:background="@color/white"
+                android:fadingEdge="horizontal"
+                android:fadingEdgeLength="30dp"
+                android:fillViewport="false"
+                android:requiresFadingEdge="vertical">
+
+            <EditText
+                android:id="@+id/add_content_field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Content of your note"
+                android:inputType="textMultiLine"
+                android:layout_marginTop="8dp"
+                android:layout_below="@id/lineno1"
+                android:paddingTop="5dp"
+                android:paddingBottom="30dp"
+                />
+
+            </ScrollView>
+            <View
+                android:id="@+id/lineno2"
+                android:layout_below="@id/content_wrap"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@android:color/darker_gray"
+                android:layout_marginBottom="8dp"/>
+
+
+        </RelativeLayout>
+
+
+<!--            <TextView-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="My Text"-->
+<!--                android:layout_marginTop="8dp"-->
+<!--                android:textAppearance="@android:style/TextAppearance.Medium"/>-->
+
+<!--            <NumberPicker-->
+<!--                android:id="@+id/the_number_picker"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"/>-->
+
+
+</LinearLayout>
