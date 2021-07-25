@@ -15,7 +15,8 @@
 
         <activity
             android:name=".AddEditNewNoteActivity"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".MainActivity"
+            android:windowSoftInputMode="adjustResize"/>
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop">

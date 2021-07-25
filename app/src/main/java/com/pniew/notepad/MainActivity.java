@@ -5,9 +5,9 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Canvas;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -25,58 +26,19 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
+import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
+
 public class MainActivity extends AppCompatActivity {
 
-    public static final int REQUEST_CODE_FOR_ADD_A_NOTE = 1;
-    public static final int REQUEST_CODE_FOR_EDIT_A_NOTE = 2;
+    public static final int ADD_A_NOTE = 1;
+    public static final int EDIT_A_NOTE = 2;
 
     private NoteViewModel noteViewModel;
-    private int requestCode;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //register activity for result here:
-        ActivityResultLauncher<Intent> addEditActivityResultLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                new ActivityResultCallback<ActivityResult>() {
-                    @Override
-                    public void onActivityResult(ActivityResult result) {
-                        int resultCode = result.getResultCode();
-                        if (resultCode == Activity.RESULT_OK) {
-                            Intent data = result.getData();
-
-                            if (requestCode == REQUEST_CODE_FOR_ADD_A_NOTE) {
-                                String title = data.getStringExtra(AddEditNewNoteActivity.INTENT_EXTRA_TITLE);
-                                String content = data.getStringExtra(AddEditNewNoteActivity.INTENT_EXTRA_CONTENT);
-
-                                Note note = new Note(title, content);
-                                noteViewModel.insertNote(note);
-
-                                Toast.makeText(MainActivity.this, "Jest zbawiony", Toast.LENGTH_SHORT).show();
-                            } else if (requestCode == REQUEST_CODE_FOR_EDIT_A_NOTE) {
-                                int id = data.getIntExtra(AddEditNewNoteActivity.INTENT_EXTRA_ID, -1);
-                                if (id == -1) {
-                                    Toast.makeText(MainActivity.this, "Sorry, item cannot be updated", Toast.LENGTH_LONG).show();
-                                    return;
-                                }
-                                String title = data.getStringExtra(AddEditNewNoteActivity.INTENT_EXTRA_TITLE);
-                                String content = data.getStringExtra(AddEditNewNoteActivity.INTENT_EXTRA_CONTENT);
-
-                                Note note = new Note(title, content);
-                                note.setId(id);
-                                noteViewModel.updateNote(note);
-
-                                Toast.makeText(MainActivity.this, "Note updated!", Toast.LENGTH_SHORT).show();
-                            }
-                        } else {
-                                Toast.makeText(MainActivity.this, "Anulowano", Toast.LENGTH_SHORT).show();
-                        }
-
-                    }
-                }
-        );
-
+        //register activity for result here, if you have any //
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -87,8 +49,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, AddEditNewNoteActivity.class);
-                requestCode = REQUEST_CODE_FOR_ADD_A_NOTE;
-                addEditActivityResultLauncher.launch(intent);
+                intent.putExtra(AddEditNewNoteActivity.INTENT_EXTRA_I_WANT_TO, ADD_A_NOTE);
+                MainActivity.this.startActivity(intent);
             }
         });
 
@@ -102,28 +64,39 @@ public class MainActivity extends AppCompatActivity {
         noteViewModel.getAllNotes().observe(this, new Observer<List<Note>>() {
             @Override
             public void onChanged(List<Note> notes) {
-                noteAdapter.setNotes(notes);
+                noteAdapter.submitList(notes);
             }
         });
 
-            noteAdapter.setOnNoteClickListener(new NoteAdapter.OnNoteClickListener() {
-                @Override
-                public void onNoteClick(Note note) {
-                    Intent intent = new Intent(MainActivity.this, AddEditNewNoteActivity.class);
-                    intent.putExtra(AddEditNewNoteActivity.INTENT_EXTRA_ID, note.getId());
-                    intent.putExtra(AddEditNewNoteActivity.INTENT_EXTRA_TITLE, note.getTitle());
-                    intent.putExtra(AddEditNewNoteActivity.INTENT_EXTRA_CONTENT, note.getContent());
-
-                    requestCode = REQUEST_CODE_FOR_EDIT_A_NOTE;
-                    addEditActivityResultLauncher.launch(intent);
-                }
-            });
-
+        noteAdapter.setOnNoteClickListener(new NoteAdapter.OnNoteClickListener() {
+            @Override
+            public void onNoteClick(Note note) {
+                Intent intent = new Intent(MainActivity.this, AddEditNewNoteActivity.class);
+                intent.putExtra(AddEditNewNoteActivity.INTENT_EXTRA_ID, note.getId());
+                intent.putExtra(AddEditNewNoteActivity.INTENT_EXTRA_TITLE, note.getTitle());
+                intent.putExtra(AddEditNewNoteActivity.INTENT_EXTRA_CONTENT, note.getContent());
+                intent.putExtra(AddEditNewNoteActivity.INTENT_EXTRA_I_WANT_TO, EDIT_A_NOTE);
+                MainActivity.this.startActivity(intent);
+            }
+        });
 
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
                 return false;
+            }
+
+            @Override
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                new RecyclerViewSwipeDecorator.Builder(MainActivity.this, c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                        .addSwipeLeftBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.swipe_to_delete))
+                        .addSwipeRightBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.swipe_to_edit))
+                        .addSwipeLeftActionIcon(R.drawable.ic_delete_item)
+                        .addSwipeRightActionIcon(R.drawable.ic_edit)
+                        .addSwipeLeftLabel("Delete")
+                        .addSwipeRightLabel("Edit")
+                        .create().decorate();
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
 
             @Override
@@ -138,9 +111,10 @@ public class MainActivity extends AppCompatActivity {
                                 switch(i){
                                     case DialogInterface.BUTTON_POSITIVE:
                                         deleteTheNote();
+                                        break;
                                     case DialogInterface.BUTTON_NEGATIVE:
                                         noteAdapter.notifyItemChanged(viewHolder.getAdapterPosition());
-                                        return;
+                                        break;
                                 }
                             }
 
@@ -153,8 +127,16 @@ public class MainActivity extends AppCompatActivity {
                         alertBuilder.setMessage("Do you want to delete the item?").setPositiveButton("Yes", dialogClickListener).setNegativeButton("No", dialogClickListener).show();
 
                         break;
+
                     case ItemTouchHelper.RIGHT:
+                        Note note = noteAdapter.getNoteAt(viewHolder.getAdapterPosition());
+                        Intent intent = new Intent(MainActivity.this, AddEditNewNoteActivity.class);
+                        intent.putExtra(AddEditNewNoteActivity.INTENT_EXTRA_ID, note.getId());
+                        intent.putExtra(AddEditNewNoteActivity.INTENT_EXTRA_TITLE, note.getTitle());
+                        intent.putExtra(AddEditNewNoteActivity.INTENT_EXTRA_CONTENT, note.getContent());
+                        intent.putExtra(AddEditNewNoteActivity.INTENT_EXTRA_I_WANT_TO, EDIT_A_NOTE);
                         noteAdapter.notifyItemChanged(viewHolder.getAdapterPosition());
+                        MainActivity.this.startActivity(intent);
                         break;
                 }
 
@@ -164,7 +146,4 @@ public class MainActivity extends AppCompatActivity {
         }).attachToRecyclerView(recyclerView);
 
     }
-
-
-
 }

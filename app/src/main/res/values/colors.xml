@@ -10,6 +10,8 @@
     <color name="purple">#7F3FBF</color>
     <color name="purple_bottom">#BDA8D3</color>
     <color name="purple_light">#DECAF3</color>
+    <color name="swipe_to_delete">#27FF50C5</color>
+    <color name="swipe_to_edit">#4A81C8FF</color>
     <color name="green_to_check">#7DC53E</color>
     <color name="pink">#D792E6</color>
 </resources>
